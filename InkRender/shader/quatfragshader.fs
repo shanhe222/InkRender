@@ -82,22 +82,22 @@ float cnoise(vec3 P)
 }
 
 void main() {
-    // 初始颜色设为较低饱和度的浅黄色
-    //vec3 baseColor = vec3(0.82, 0.8, 0.7);
+    
     vec3 baseColor = vec3(1, 1, 1);
-    
-    // 控制噪声频率的参数
-    float noiseFrequency = 150.0; // 调整这个值来改变噪声的频率
-    
-    // 计算Simplex噪声
-    float noise = cnoise(vec3(TexCoords * noiseFrequency, 0.0)); // 使用噪声频率参数
-    noise = noise * 0.5 + 0.5; // 将噪声值调整到0到1的范围内
-    
-    // 减小噪声的颜色混色强度
-    float noiseStrength = 0.2; // 控制噪声影响的强度
-    
-    // 将噪声应用到颜色上
-    vec3 color = mix(baseColor, baseColor * (1.0 - noise), noiseStrength); // 调整噪声强度
-    
+
+    // Parameter to control noise frequency
+    float noiseFrequency = 150.0; // Adjust this value to change the noise frequency
+
+    // Calculate Simplex noise
+    float noise = cnoise(vec3(TexCoords * noiseFrequency, 0.0)); // Use the noise frequency parameter
+    noise = noise * 0.5 + 0.5; // Adjust noise value to the range of 0 to 1
+
+    // Reduce the color blending intensity of the noise
+    float noiseStrength = 0.2; // Control the intensity of the noise effect
+
+    // Apply noise to the color
+    vec3 color = mix(baseColor, baseColor * (1.0 - noise), noiseStrength); // Adjust noise intensity
+
     FragColor = vec4(color, 1.0);
 }
+

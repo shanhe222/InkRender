@@ -104,12 +104,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>E:\studyproject\InkRender\Libraries\include;E:/studyproject/InkRender/Libraries/imgui-master;E:/studyproject/InkRender/Libraries/imgui-master/backends</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Libraries\include;Libraries\imgui-master;Libraries/imgui-master/backends</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>E:\studyproject\InkRender\Libraries\libs</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>Libraries\libs</AdditionalLibraryDirectories>
       <AdditionalDependencies>glfw3.lib;glfw3dll.lib;opengl32.lib;assimp-vc143-mt.lib;fmod_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
