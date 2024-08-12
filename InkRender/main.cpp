@@ -1,4 +1,4 @@
-#include "imgui.h"
+ï»¿#include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <glad/glad.h>
@@ -16,26 +16,27 @@
 #include <fstream>  
 #include <sstream>
 #include <iostream>
+#include <chrono>
 #include "Model.h"
 #include "Camera.h"
 #include "ParticleSystem.h"
 #include <windows.h>
 
-// ´°¿Ú´óĞ¡
+// çª—å£å¤§å°
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-// ³õÊ¼»¯ÉãÏñÍ·
+// åˆå§‹åŒ–æ‘„åƒå¤´
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-// Ê±¼ä±äÁ¿
-float deltaTime = 0.006f;  // µ±Ç°Ö¡ÓëÉÏÒ»Ö¡µÄÊ±¼ä²î
-float lastFrame = glfwGetTime();  // ÉÏÒ»Ö¡µÄÊ±¼ä
+// æ—¶é—´å˜é‡
+float deltaTime = 0.006f;  // å½“å‰å¸§ä¸ä¸Šä¸€å¸§çš„æ—¶é—´å·®
+float lastFrame = glfwGetTime();  // ä¸Šä¸€å¸§çš„æ—¶é—´
 
-// ÉãÏñÍ·¿ØÖÆ¿ª¹Ø
+// æ‘„åƒå¤´æ§åˆ¶å¼€å…³
 bool cameraControlEnabled = false;
 
 
@@ -54,7 +55,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     }
 
     float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // ×¢ÒâÕâÀïÊÇÏà·´µÄ£¬ÒòÎª y ×ø±êÊÇ´Óµ×²¿Íù¶¥²¿Ôö´óµÄ
+    float yoffset = lastY - ypos; // æ³¨æ„è¿™é‡Œæ˜¯ç›¸åçš„ï¼Œå› ä¸º y åæ ‡æ˜¯ä»åº•éƒ¨å¾€é¡¶éƒ¨å¢å¤§çš„
     lastX = xpos;
     lastY = ypos;
 
@@ -66,7 +67,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         cameraControlEnabled = !cameraControlEnabled;
         if (cameraControlEnabled) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            firstMouse = true; // ÖØÖÃÊó±ê³õÊ¼Î»ÖÃ
+            firstMouse = true; // é‡ç½®é¼ æ ‡åˆå§‹ä½ç½®
         }
         else {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -129,7 +130,7 @@ unsigned int loadShader(const char* vertexPath, const char* fragmentPath) {
     int success;
     char infoLog[512];
 
-    // ¶¥µã×ÅÉ«Æ÷
+    // é¡¶ç‚¹ç€è‰²å™¨
     vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShaderCode, NULL);
     glCompileShader(vertex);
@@ -139,7 +140,7 @@ unsigned int loadShader(const char* vertexPath, const char* fragmentPath) {
         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
 
-    // Æ¬¶Î×ÅÉ«Æ÷
+    // ç‰‡æ®µç€è‰²å™¨
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fShaderCode, NULL);
     glCompileShader(fragment);
@@ -149,7 +150,7 @@ unsigned int loadShader(const char* vertexPath, const char* fragmentPath) {
         std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
 
-    // ×ÅÉ«Æ÷³ÌĞò
+    // ç€è‰²å™¨ç¨‹åº
     unsigned int ID = glCreateProgram();
     glAttachShader(ID, vertex);
     glAttachShader(ID, fragment);
@@ -167,32 +168,32 @@ unsigned int loadShader(const char* vertexPath, const char* fragmentPath) {
 }
 
 unsigned int loadShader_geo(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr) {
-    // 1. ´ÓÎÄ¼şÂ·¾¶ÖĞ¶ÁÈ¡¶¥µã/Æ¬¶Î×ÅÉ«Æ÷´úÂë
+    // 1. ä»æ–‡ä»¶è·¯å¾„ä¸­è¯»å–é¡¶ç‚¹/ç‰‡æ®µç€è‰²å™¨ä»£ç 
     std::string vertexCode;
     std::string fragmentCode;
     std::string geometryCode;
     std::ifstream vShaderFile;
     std::ifstream fShaderFile;
     std::ifstream gShaderFile;
-    // ±£Ö¤ ifstream ¶ÔÏó¿ÉÒÔÅ×³öÒì³££º
+    // ä¿è¯ ifstream å¯¹è±¡å¯ä»¥æŠ›å‡ºå¼‚å¸¸ï¼š
     vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     try {
-        // ´ò¿ªÎÄ¼ş
+        // æ‰“å¼€æ–‡ä»¶
         vShaderFile.open(vertexPath);
         fShaderFile.open(fragmentPath);
         std::stringstream vShaderStream, fShaderStream;
-        // ¶ÁÈ¡ÎÄ¼şµÄ»º³åÄÚÈİµ½Êı¾İÁ÷ÖĞ
+        // è¯»å–æ–‡ä»¶çš„ç¼“å†²å†…å®¹åˆ°æ•°æ®æµä¸­
         vShaderStream << vShaderFile.rdbuf();
         fShaderStream << fShaderFile.rdbuf();
-        // ¹Ø±ÕÎÄ¼ş´¦ÀíÆ÷
+        // å…³é—­æ–‡ä»¶å¤„ç†å™¨
         vShaderFile.close();
         fShaderFile.close();
-        // ×ª»»Êı¾İÁ÷µ½string
+        // è½¬æ¢æ•°æ®æµåˆ°string
         vertexCode = vShaderStream.str();
         fragmentCode = fShaderStream.str();
-        // Èç¹ûÓĞ¼¸ºÎ×ÅÉ«Æ÷Â·¾¶£¬ÔòÒ²½øĞĞÏàÍ¬´¦Àí
+        // å¦‚æœæœ‰å‡ ä½•ç€è‰²å™¨è·¯å¾„ï¼Œåˆ™ä¹Ÿè¿›è¡Œç›¸åŒå¤„ç†
         if (geometryPath != nullptr) {
             gShaderFile.open(geometryPath);
             std::stringstream gShaderStream;
@@ -208,39 +209,39 @@ unsigned int loadShader_geo(const char* vertexPath, const char* fragmentPath, co
     const char* fShaderCode = fragmentCode.c_str();
     const char* gShaderCode = geometryCode.c_str();
 
-    // 2. ±àÒë×ÅÉ«Æ÷
+    // 2. ç¼–è¯‘ç€è‰²å™¨
     unsigned int vertex, fragment, geometry;
     int success;
     char infoLog[512];
 
-    // ¶¥µã×ÅÉ«Æ÷
+    // é¡¶ç‚¹ç€è‰²å™¨
     vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShaderCode, NULL);
     glCompileShader(vertex);
-    // ´òÓ¡±àÒë´íÎó£¨Èç¹ûÓĞµÄ»°£©
+    // æ‰“å°ç¼–è¯‘é”™è¯¯ï¼ˆå¦‚æœæœ‰çš„è¯ï¼‰
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(vertex, 512, NULL, infoLog);
         std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
 
-    // Æ¬¶Î×ÅÉ«Æ÷
+    // ç‰‡æ®µç€è‰²å™¨
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fShaderCode, NULL);
     glCompileShader(fragment);
-    // ´òÓ¡±àÒë´íÎó£¨Èç¹ûÓĞµÄ»°£©
+    // æ‰“å°ç¼–è¯‘é”™è¯¯ï¼ˆå¦‚æœæœ‰çš„è¯ï¼‰
     glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(fragment, 512, NULL, infoLog);
         std::cerr << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
 
-    // Èç¹ûÓĞ¼¸ºÎ×ÅÉ«Æ÷Â·¾¶£¬Ôò±àÒë¼¸ºÎ×ÅÉ«Æ÷
+    // å¦‚æœæœ‰å‡ ä½•ç€è‰²å™¨è·¯å¾„ï¼Œåˆ™ç¼–è¯‘å‡ ä½•ç€è‰²å™¨
     if (geometryPath != nullptr) {
         geometry = glCreateShader(GL_GEOMETRY_SHADER);
         glShaderSource(geometry, 1, &gShaderCode, NULL);
         glCompileShader(geometry);
-        // ´òÓ¡±àÒë´íÎó£¨Èç¹ûÓĞµÄ»°£©
+        // æ‰“å°ç¼–è¯‘é”™è¯¯ï¼ˆå¦‚æœæœ‰çš„è¯ï¼‰
         glGetShaderiv(geometry, GL_COMPILE_STATUS, &success);
         if (!success) {
             glGetShaderInfoLog(geometry, 512, NULL, infoLog);
@@ -248,7 +249,7 @@ unsigned int loadShader_geo(const char* vertexPath, const char* fragmentPath, co
         }
     }
 
-    // ×ÅÉ«Æ÷³ÌĞò
+    // ç€è‰²å™¨ç¨‹åº
     unsigned int ID = glCreateProgram();
     glAttachShader(ID, vertex);
     glAttachShader(ID, fragment);
@@ -256,14 +257,14 @@ unsigned int loadShader_geo(const char* vertexPath, const char* fragmentPath, co
         glAttachShader(ID, geometry);
     }
     glLinkProgram(ID);
-    // ´òÓ¡Á´½Ó´íÎó£¨Èç¹ûÓĞµÄ»°£©
+    // æ‰“å°é“¾æ¥é”™è¯¯ï¼ˆå¦‚æœæœ‰çš„è¯ï¼‰
     glGetProgramiv(ID, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(ID, 512, NULL, infoLog);
         std::cerr << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
     }
 
-    // É¾³ı×ÅÉ«Æ÷£¬ËüÃÇÒÑ¾­Á´½Óµ½ÎÒÃÇµÄ³ÌĞòÖĞÁË£¬ÒÑ¾­²»ÔÙĞèÒªÁË
+    // åˆ é™¤ç€è‰²å™¨ï¼Œå®ƒä»¬å·²ç»é“¾æ¥åˆ°æˆ‘ä»¬çš„ç¨‹åºä¸­äº†ï¼Œå·²ç»ä¸å†éœ€è¦äº†
     glDeleteShader(vertex);
     glDeleteShader(fragment);
     if (geometryPath != nullptr) {
@@ -274,7 +275,7 @@ unsigned int loadShader_geo(const char* vertexPath, const char* fragmentPath, co
 }
 
 
-// ³õÊ¼»¯Ä«Ë®·Ö²¼ÎÆÀí
+// åˆå§‹åŒ–å¢¨æ°´åˆ†å¸ƒçº¹ç†
 GLuint initInkTexture(int width, int height) {
     GLuint textureID;
     glGenTextures(1, &textureID);
@@ -287,7 +288,7 @@ GLuint initInkTexture(int width, int height) {
     std::vector<float> inkData(width * height, 0.0f);
     for (int y = height / 4; y < 3 * height / 4; ++y) {
         for (int x = width / 4; x < 3 * width / 4; ++x) {
-            inkData[y * width + x] = 1.0f; // Ôö¼Ó³õÊ¼Ä«Ë®Å¨¶È
+            inkData[y * width + x] = 1.0f; // å¢åŠ åˆå§‹å¢¨æ°´æµ“åº¦
         }
     }
 
@@ -296,7 +297,7 @@ GLuint initInkTexture(int width, int height) {
     return textureID;
 }
 
-// È«¾Ö±äÁ¿£¬ÓÃÓÚ´æ´¢ËÄ±ßĞÎµÄVAOºÍVBO
+// å…¨å±€å˜é‡ï¼Œç”¨äºå­˜å‚¨å››è¾¹å½¢çš„VAOå’ŒVBO
 GLuint quadVAO = 0;
 GLuint quadVBO;
 GLuint quadEBO;
@@ -304,16 +305,17 @@ GLuint quadEBO;
 void createFullScreenQuad() {
     if (quadVAO == 0) {
         float vertices[] = {
-            // ¶¥µãÎ»ÖÃ      // ÎÆÀí×ø±ê
-            -1.0f,  1.0f, 0.0f,  0.0f, 1.0f,  // ×óÉÏ½Ç
-            -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  // ×óÏÂ½Ç
-             1.0f, -1.0f, 0.0f,  1.0f, 0.0f,  // ÓÒÏÂ½Ç
-             1.0f,  1.0f, 0.0f,  1.0f, 1.0f   // ÓÒÉÏ½Ç
+            // Vertex Position   // Texture Coordinates
+            -1.0f,  1.0f, 0.0f,  0.0f, 1.0f,  // Top Left
+            -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  // Bottom Left
+             1.0f, -1.0f, 0.0f,  1.0f, 0.0f,  // Bottom Right
+             1.0f,  1.0f, 0.0f,  1.0f, 1.0f   // Top Right
         };
         unsigned int indices[] = {
-            0, 1, 2,   // µÚÒ»¸öÈı½ÇĞÎ
-            0, 2, 3    // µÚ¶ş¸öÈı½ÇĞÎ
+            0, 1, 2,   // First Triangle
+            0, 2, 3    // Second Triangle
         };
+
 
         glGenVertexArrays(1, &quadVAO);
         glGenBuffers(1, &quadVBO);
@@ -327,10 +329,10 @@ void createFullScreenQuad() {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadEBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-        // ¶¥µãÎ»ÖÃÊôĞÔ
+        // é¡¶ç‚¹ä½ç½®å±æ€§
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
-        // ÎÆÀí×ø±êÊôĞÔ
+        // çº¹ç†åæ ‡å±æ€§
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
@@ -345,7 +347,7 @@ void renderQuad() {
 }
 
 int main() {
-    // ´òÓ¡µ±Ç°¹¤×÷Ä¿Â¼
+    // Print working dictionary
     wchar_t buffer[MAX_PATH];
     GetModuleFileNameW(NULL, buffer, MAX_PATH);
     std::wstring ws(buffer);
@@ -356,18 +358,18 @@ int main() {
 
 
 
-    // ³õÊ¼»¯GLFW
+    // åˆå§‹åŒ–GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return -1;
     }
 
-    // ÅäÖÃGLFW
+    // set GLFW
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // ´´½¨Ò»¸ö´°¿Ú¶ÔÏó
+    // Create a window object
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Model Loading", NULL, NULL);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -375,71 +377,72 @@ int main() {
         return -1;
     }
 
-    // ÉèÖÃµ±Ç°ÉÏÏÂÎÄ
+    // Set the current context
     glfwMakeContextCurrent(window);
 
-    // ÉèÖÃ´°¿Ú´óĞ¡»Øµ÷
+    // Set the window size callback
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    // ÉèÖÃÊó±ê»Øµ÷
+    // Set the mouse position callback
     glfwSetCursorPosCallback(window, mouse_callback);
-    // ÉèÖÃÊó±ê°´Å¥»Øµ÷
+    // Set the mouse button callback
     glfwSetMouseButtonCallback(window, mouse_button_callback);
-    // ÉèÖÃ¹öÂÖ»Øµ÷
+    // Set the scroll callback
     glfwSetScrollCallback(window, scroll_callback);
+
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
 
-    // ÆôÓÃÉî¶È²âÊÔ
+    // å¯ç”¨æ·±åº¦æµ‹è¯•
     glEnable(GL_DEPTH_TEST);
 
-    // ±àÒëºÍÁ´½Ó×ÅÉ«Æ÷³ÌĞò
+    // ç¼–è¯‘å’Œé“¾æ¥ç€è‰²å™¨ç¨‹åº
     unsigned int shaderProgram = loadShader("shader/vertshader.vs", "shader/fragshader.fs");
-    // »ñÈ¡uniformÎ»ÖÃ
+    // è·å–uniformä½ç½®
 
     int edgeRangeLocation = glGetUniformLocation(shaderProgram, "edgeRange");
     int edgeThredLocation = glGetUniformLocation(shaderProgram, "edgeThred");
     int edgePowLocation = glGetUniformLocation(shaderProgram, "edgePow");
     int lightstrengthLocation = glGetUniformLocation(shaderProgram, "lightStrength");
 
-    // ¼ÓÔØÄ£ĞÍ
+    // åŠ è½½æ¨¡å‹
     //Model ourModel("model/rock/cliff_rock1.fbx");
     //Model ourModel("model/Blue/blue.fbx");
-    //Model ourModel("model/House/Chinese Brick Broken House.fbx");//·¿×Ó
-    //Model ourModel("model/SonowMountain/Snowy.obj");//Ñ©É½
-    Model ourModel("model/Babydragon/Baby_dragon.fbx");//±¦±¦Áú 
+    //Model ourModel("model/House/Chinese Brick Broken House.fbx");//æˆ¿å­
+    //Model ourModel("model/SonowMountain/Snowy.obj");//é›ªå±±
+    Model ourModel("model/Babydragon/Baby_dragon.fbx");//å®å®é¾™ 
     //Model ourModel("model/ccity/city.fbx");
     //Model ourModel("model/shiba/1.FBX");//shiba dog
     //Model ourModel("model/reddragon/dragontrophy.fbx");//dragon head
     
-    // ³õÊ¼»¯ImGui
+    // åˆå§‹åŒ–ImGui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     ImGui::StyleColorsDark();
 
-    // ³õÊ¼»¯ImGuiºó¶Ë
+    // åˆå§‹åŒ–ImGuiåç«¯
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
-    // ²ÎÊı±äÁ¿
+    // å‚æ•°å˜é‡
     float edgeThreshold = 0.25f;
     float edgeRange = 3.5f;
     float edgeThred = 0.1f;
     float edgePow = 0.5f;
-    // ²ÎÊı±äÁ¿
+    // å‚æ•°å˜é‡
     bool mixValue = true;
     glm::vec3 lightPos(12.0f, 10.0f, 20.0f);
     float LightStrength = 0.5f;
     bool kEnabled = false;
 
-    // ³õÊ¼»¯Ä«Ë®·Ö²¼ÎÆÀí
+    // åˆå§‹åŒ–å¢¨æ°´åˆ†å¸ƒçº¹ç†
     GLuint inkTexture;
     glGenTextures(1, &inkTexture);
     glBindTexture(GL_TEXTURE_2D, inkTexture);
 
-    // ÉèÖÃÎÆÀí²ÎÊı
+    // è®¾ç½®çº¹ç†å‚æ•°
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -447,11 +450,11 @@ int main() {
 
     
 
-    // ³õÊ¼»¯Ä«Ë®ÎÆÀí
+    // Initialize ink texture
     int width = 512, height = 512;
     GLuint diffinkTexture = initInkTexture(width, height);
 
-    // ´´½¨Á£×ÓÏµÍ³
+    // Temporarily deprecate the particle system in this project for future expansion
     //unsigned int particleShaderProgram = loadShader("shader/particle.vert", "shader/particle.frag");
     unsigned int particleShaderProgram = loadShader_geo("shader/particle.vert", "shader/particle.frag", "shader/geometry.gs");
 
@@ -459,26 +462,28 @@ int main() {
     particleSystem.init();
     particleSystem.loadTexture("texture/Particlebrush.png");
 
-    // »ñÈ¡Ä£ĞÍµÄ¶¥µãºÍ·¨ÏßÊı¾İ²¢ÉèÖÃÁ£×ÓÏµÍ³
+    // Obtain vertex and normal data from the model and set up the particle system
+
     std::vector<glm::vec3> positions;
     std::vector<glm::vec3> normals;
     ourModel.getVerticesAndNormals(positions, normals);
     particleSystem.setParticlesFromMesh(positions, normals);
 
-    //±³¾°ËÄ±ßĞÎ
-    // ±àÒëºÍÁ´½Ó×ÅÉ«Æ÷³ÌĞò
+    // Background quad
+    // Compile and link the shader program
     unsigned int quatshaderProgram = loadShader("shader/quatvertshader.vs", "shader/quatfragshader.fs");
-    // ÉèÖÃËÄ±ßĞÎ
+    // Set up the quad
     createFullScreenQuad();
 
-    //äÖÈ¾µ½ÎÆÀí
+    // Render to texture
     unsigned int screenShaderProgram = loadShader("shader/screenvertshader.vs", "shader/screenfragshader.fs");
 
     GLuint fbo, screentexture, depthRBO;
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-    // ´´½¨Ò»¸öÎÆÀí¸½¼ş
+    // Create a texture attachment
+
     glGenTextures(1, &screentexture);
     glBindTexture(GL_TEXTURE_2D, screentexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -486,18 +491,18 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, screentexture, 0);
 
-    // ´´½¨Éî¶È¸½¼ş
+    // Create deep attachments
     glGenRenderbuffers(1, &depthRBO);
     glBindRenderbuffer(GL_RENDERBUFFER, depthRBO);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRBO);
 
 
-    // ¼ì²éFBOÊÇ·ñÍêÕû
+    // Check if FBO is complete
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
     
-    // ½â°óÎÆÀíºÍFBO
+    // Unbind texture and FBO
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -506,16 +511,17 @@ int main() {
     int frameCount = 0;
     double fps = 0;
     double previousTime = glfwGetTime();
-    // äÖÈ¾Ñ­»·
+    
+
     while (!glfwWindowShouldClose(window)) {
 
-
-        // ¼ÆËãÖ¡Ê±¼ä
+        //auto start = std::chrono::high_resolution_clock::now();
+        // Calculate frame time
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         frameCount++;
-        if (currentFrame - previousTime >= 1.0) { // Ã¿Ãë¸üĞÂÒ»´Î
+        if (currentFrame - previousTime >= 1.0) { // Update once per second
             fps = frameCount;
             frameCount = 0;
             previousTime = currentFrame;
@@ -526,7 +532,7 @@ int main() {
 
         processInput(window);
 
-        // °ó¶¨FBO½øĞĞäÖÈ¾
+        // Bind FBO for rendering
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         
         
@@ -535,29 +541,29 @@ int main() {
         }
         
 
-        // ÉèÖÃÍ¶Ó°¾ØÕó
+        // Set the projection matrix
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
-        // »ñÈ¡¹Û²ì¾ØÕó
+        // Get the view matrix
         glm::mat4 view = camera.GetViewMatrix();
-        // ÉèÖÃÄ£ĞÍ¾ØÕó
+        // Set the model matrix
         glm::mat4 model = glm::mat4(1.0f);
 
-        // ¸üĞÂÁ£×ÓÏµÍ³
-        particleSystem.update(deltaTime,projection,view,model);
+
+        // Temporarily abandon the particle system waiting for future expansion in this project
+        //particleSystem.update(deltaTime,projection,view,model);
 
         
-        // ¿ªÊ¼ĞÂµÄImGuiÖ¡
+        // start newImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // ´´½¨ImGui´°¿Ú
+        // ImGui window
         ImGui::Begin("Watercolor Parameters");
         ImGui::SliderFloat("Edge Range", &edgeRange, 1.0f, 10.0f);
         ImGui::SliderFloat("Edge Thred", &edgeThred, 0.0f, 1.0f);
         ImGui::SliderFloat("Edge Pow", &edgePow, 0.1f, 4.0f);
         ImGui::Checkbox("Enable brush texture", &mixValue);
-        // Ê¹ÓÃÇúÂÊ¸´Ñ¡¿ò
         ImGui::Checkbox("Enable Curvature", &kEnabled);
         // Add sliders for light position and intensity
         ImGui::SliderFloat3("Light Position", &lightPos.x, -100.0f, 100.0f);
@@ -566,32 +572,33 @@ int main() {
         ImGui::End();
 
         
-        // äÖÈ¾Ö¸Áî
-        glClearColor(0.75f, 0.75f, 0.75f, 1.0f); // ÉèÖÃ±³¾°ÑÕÉ«ÎªÇ³»ÒÉ«
+        // Rendering instructions
+        glClearColor(0.75f, 0.75f, 0.75f, 1.0f); // Set the background color to light gray
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-       
-        // Ê¹ÓÃ×ÅÉ«Æ÷ºÍäÖÈ¾ËÄ±ßĞÎ
+        
+        // Using shaders and rendering quadrilaterals
         glUseProgram(quatshaderProgram);
-        glDepthMask(GL_FALSE); // ½ûÖ¹Éî¶ÈĞ´Èë
-        renderQuad();          // äÖÈ¾È«ÆÁËÄ±ßĞÎ
-        glDepthMask(GL_TRUE);  // ÖØĞÂÆôÓÃÉî¶ÈĞ´Èë
-
+        glDepthMask(GL_FALSE); // Prohibit deep writing
+        renderQuad();          // render paper background
+        glDepthMask(GL_TRUE);  // Re enable deep writing
         
 
-        // ¼¤»î×ÅÉ«Æ÷
+        //start = std::chrono::high_resolution_clock::now();
+
+        // Activate shader
         glUseProgram(shaderProgram);
 
-        // °ó¶¨Ä«Ë®ÎÆÀí
+        
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, diffinkTexture);
 
-        // ÉèÖÃuniform±äÁ¿
+        // Set uniform variable
         glUniform1i(glGetUniformLocation(shaderProgram, "diffinkTexture"), 1);
         glUniform1f(glGetUniformLocation(shaderProgram, "diffusionRate"), 0.1f);
         glUniform2f(glGetUniformLocation(shaderProgram, "texelSize"), 1.0f / width, 1.0f / height);
 
-        // ÉèÖÃuniform±äÁ¿
+      
         glUniform3fv(glGetUniformLocation(shaderProgram, "lightPos"), 1, &lightPos[0]);
         glUniform3f(glGetUniformLocation(shaderProgram, "viewPos"), camera.Position.x, camera.Position.y, camera.Position.z);
         glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f, 1.0f, 1.0f);
@@ -599,66 +606,67 @@ int main() {
         glUniform1i(glGetUniformLocation(shaderProgram, "mixValue"), mixValue);
         glUniform1i(glGetUniformLocation(shaderProgram, "kEnabled"), kEnabled);
 
-        // ´«µİ¾ØÕó¸ø×ÅÉ«Æ÷
+        
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
-        // ÉèÖÃuniform²ÎÊı
-        glUniform1f(edgeRangeLocation, edgeRange);  // ´«Èë²ÎÊıÖµ
-        glUniform1f(edgeThredLocation, edgeThred);  // ´«Èë²ÎÊıÖµ
-        glUniform1f(edgePowLocation, edgePow);  // ´«Èë²ÎÊıÖµ
-        glUniform1f(lightstrengthLocation, LightStrength);  // ´«Èë²ÎÊıÖµ
+       
+        glUniform1f(edgeRangeLocation, edgeRange);  // ä¼ å…¥å‚æ•°å€¼
+        glUniform1f(edgeThredLocation, edgeThred);  // ä¼ å…¥å‚æ•°å€¼
+        glUniform1f(edgePowLocation, edgePow);  // ä¼ å…¥å‚æ•°å€¼
+        glUniform1f(lightstrengthLocation, LightStrength);  // ä¼ å…¥å‚æ•°å€¼
 
+        GLuint query;
+        glGenQueries(1, &query);
 
-        // äÖÈ¾Ä£ĞÍ
+       
+        // æ¸²æŸ“æ¨¡å‹
         ourModel.Draw(shaderProgram);
         
-       
-        // äÖÈ¾Á£×ÓÏµÍ³
-        //particleSystem.render(projection, view, model);
+    
 
 
-        // ½â³ıFBO°ó¶¨£¬»Øµ½Ä¬ÈÏÖ¡»º³å
+        // Unbind FBO and return to default frame buffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glUseProgram(screenShaderProgram);  // Ê¹ÓÃÁíÒ»¸ö×ÅÉ«Æ÷À´´¦ÀíÎÆÀí
+        glUseProgram(screenShaderProgram);  // Use another shader to process textures
         glBindTexture(GL_TEXTURE_2D, screentexture);
-        glUniform1i(glGetUniformLocation(screenShaderProgram, "textureSampler"), 0); // È·±£×ÅÉ«Æ÷ÖĞÊ¹ÓÃµÄÊÇ textureSampler
+        glUniform1i(glGetUniformLocation(screenShaderProgram, "textureSampler"), 0);
 
-        // »ñÈ¡uniformÎ»ÖÃ
+        // Get uniform location
         float currentTime = glfwGetTime();
         GLint timeLocation = glGetUniformLocation(screenShaderProgram, "time");
         glUniform1f(timeLocation, currentTime);
 
-        renderQuad();  // äÖÈ¾Ò»¸öÈ«ÆÁËÄ±ßĞÎÒÔÏÔÊ¾ÎÆÀí
+        renderQuad();  // Render a full screen quadrilateral to display textures
 
 
-        // äÖÈ¾Ö¸Áî
+      
 
-        glClear(GL_DEPTH_BUFFER_BIT);//Çå³ıÉî¶È»º³åÇø
+        glClear(GL_DEPTH_BUFFER_BIT);//Clear depth buffer
 
        
 
-        // äÖÈ¾ImGui
+        // ImGui
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // ½»»»»º³åÇø²¢²éÑ¯IOÊÂ¼ş
+
         glfwSwapBuffers(window);
         glfwPollEvents();
         
     
     }
 
-    // ÇåÀíImGui
+    // clear ImGui
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
-    // ÇåÀíGLFW
+    // clear GLFW
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // ÊÍ·ÅGLFW×ÊÔ´
+    
     glfwTerminate();
     return 0;
 }
