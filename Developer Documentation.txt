@@ -1,0 +1,52 @@
+InkRender Developer Documentation
+Introduction
+InkRender is a real-time 3D model rendering system designed for creating ink-style artwork. The system is developed using C++ and OpenGL, with Visual Studio as the integrated development environment (IDE). This document provides an overview of the system's architecture, setup instructions for the local development environment, and deployment guidelines.
+
+Platform Architecture
+Architecture Overview
+InkRender operates as a standalone application that leverages the power of OpenGL for real-time rendering. The application is structured to efficiently load, process, and display 3D models with a focus on delivering high-quality ink-style visual effects.
+
+Components
+Rendering Engine: The core of InkRender, built using OpenGL, handles the real-time rendering of 3D models.
+Model Loader: This component loads 3D models into the system, supporting various file formats.
+Shader System: Custom shaders are used to achieve the ink-style effects, providing flexibility in visual appearance.
+User Interface: A minimal user interface built within the application allows users to interact with the 3D models, adjust settings, and view the rendering output.
+
+Technologies Used
+Programming Language: C++
+Graphics API: OpenGL
+Development Environment: Visual Studio
+3D Model Formats: OBJ, FBX (with the potential to support others)
+Programming Style
+Code Conventions: Follows modern C++ standards (C++11 and later).
+Design Patterns: Utilizes common design patterns such as Singleton for the renderer, Factory for model loaders, and Observer for UI updates.
+Error Handling: Primarily uses exception handling in C++ to manage errors, with comprehensive logging for debugging purposes.
+Setting Up the Project in a Local Development Environment
+
+System Requirements for Deployment
+Operating System: Windows 10 or higher
+Processor: Intel Core i7 (10th generation) or equivalent
+Graphics Card: NVIDIA GeForce GTX 2060 or higher
+RAM: 16 GB or more
+Storage: 10 GB of available disk space
+Additional Software: OpenGL-compatible graphics drivers, and Visual C++ Redistributable packages.
+Development Tools: Visual Studio 2019 or higher with C++ development workload
+
+Steps for Deployment
+Prepare the release build:
+
+In Visual Studio, switch to the Release configuration.
+Build the project to generate the optimized executable.
+Package the application:
+
+Ensure all required runtime libraries (e.g., DLLs for OpenGL) are included in the package.
+Create an installer using a tool like Inno Setup or NSIS, or simply zip the executable with all dependencies.
+Deploy to target machine:
+
+Copy the installer or the zipped package to the target machine.
+Install or extract the application on the target machine.
+Run the application to verify successful deployment.
+Post-deployment checks:
+
+Ensure that the application runs smoothly on the target hardware.
+Check that all features are functional, and performance is within acceptable limits.

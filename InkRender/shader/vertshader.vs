@@ -14,23 +14,23 @@ uniform mat4 view;
 uniform mat4 projection;
 
 void main() {
-    FragPos = vec3(model * vec4(aPos, 1.0)); // 顶点的世界坐标
-    Normal = mat3(transpose(inverse(model))) * aNormal; // 变换后的法线
+    FragPos = vec3(model * vec4(aPos, 1.0)); // World coordinates of the vertex
+    Normal = mat3(transpose(inverse(model))) * aNormal; // Transformed normal
     TexCoords = aTexCoords;
-    gl_Position = projection * view * model * vec4(aPos, 1.0); // 屏幕坐标
-   
-    // 使用法线变化近似计算曲率
+    gl_Position = projection * view * model * vec4(aPos, 1.0); // Screen coordinates
+
+    // Approximate curvature using normal variation
     vec3 dNormal = normalize(aNormal) - Normal;
-    Curvature = length(dNormal)*100000;
-    
+    Curvature = length(dNormal) * 100000;
 
-    // 提取相机位置
-    vec3 camPos = -(transpose(mat3(view)) * vec3(view[3])); // 提取相机位置
+    // Extract camera position
+    vec3 camPos = -(transpose(mat3(view)) * vec3(view[3])); // Extract camera position
 
-    // 计算视线方向
+    // Calculate view direction
     vec3 viewDir = normalize(camPos - FragPos);
 
-    // 计算视线与法线的点积
+    // Calculate the dot product of the view direction and the normal
+
     vDotN = dot(viewDir, normalize(Normal));
     
 }
