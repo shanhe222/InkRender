@@ -1,11 +1,11 @@
 #version 330 core
 out vec4 FragColor;
 
-in vec2 TexCoords; // 从顶点着色器接收的纹理坐标
-uniform sampler2D textureSampler; // 输入的纹理
+in vec2 TexCoords; // Texture coordinates received from the vertex shader
+uniform sampler2D textureSampler; // Input texture
 
 float noise(vec2 st) {
-    // 简单的噪声函数
+    // Simple noise function
     return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
@@ -25,8 +25,8 @@ vec3 blurEffect(vec2 coords, float radius) {
 
 void main() {
     vec3 baseColor = texture(textureSampler, TexCoords).rgb;
-    float n = noise(TexCoords * 10.0); // 控制噪声的尺度
-    vec3 blurredColor = blurEffect(TexCoords, n * 10.0); // 使用噪声控制模糊半径
+    float n = noise(TexCoords * 10.0); // Control the scale of the noise
+    vec3 blurredColor = blurEffect(TexCoords, n * 10.0); // Use noise to control the blur radius
     FragColor = vec4(mix(baseColor, blurredColor, 0.5), 1.0);
-    //FragColor = vec4(baseColor, 1.0);
+  
 }

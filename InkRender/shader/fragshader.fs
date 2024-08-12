@@ -53,12 +53,13 @@ float computeColorValue(float C_j) {
 
 void main() {
 
-    //深度
+    
+    //Depth
     float depth = gl_FragCoord.z;
-    //笔刷纹理
+    //Brush Tex
     vec4 brushcolor = texture(texture_Brushstrokes1, TexCoords);
     
-
+    //——————Caculate Lighting——————
     // Ambient component
     float ambientStrength = 0.1;
     vec3 ambient = ambientStrength * lightColor;
@@ -76,61 +77,48 @@ void main() {
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
     vec3 specular = specularStrength * spec * lightColor;
 
-    float shadowThreshold = 0.7; // 阴影阈值
-    vec3 lighting = ( diffuse ) * lightStrength;
-    // 计算更锋利的阴影
+    float shadowThreshold = 0.7; // Shadow threshold
+    vec3 lighting = (diffuse) * lightStrength;
+    // Calculate sharper shadows
     vec3 lighting2 = vec3(step(shadowThreshold, lighting.r),
-                                step(shadowThreshold, lighting.g),
-                                step(shadowThreshold, lighting.b)) * lighting;
+                        step(shadowThreshold, lighting.g),
+                        step(shadowThreshold, lighting.b)) * lighting;
 
-    bool isInShadow = dot(lighting, vec3(0.299, 0.587, 0.114)) < shadowThreshold; // 使用亮度计算是否在阴影中
+    bool isInShadow = dot(lighting, vec3(0.299, 0.587, 0.114)) < shadowThreshold; // Calculate whether in shadow using luminance
 
-    // 在阴影中使用笔刷纹理，否则使用常规光照
+    // Use brush texture in shadow, otherwise use regular lighting
     vec3 lighting3;
     if (isInShadow) {
-        lighting3 = mix(lighting2, vec3(brushcolor.rgb), 0.5); // 使用笔刷纹理的颜色
+        lighting3 = mix(lighting2, vec3(brushcolor.rgb), 0.5); // Use the color of the brush texture
     } else {
         lighting3 = lighting2;
     }
-    vec3 lighting4 = clamp(lighting3, 0.0, 1.0)*0.5; // 校正
+    vec3 lighting4 = clamp(lighting3, 0.0, 1.0) * 0.5; // Correction
 
+    
 
     vec4 color = texture(texture_diffuse1, TexCoords);
-    //color = vec4(color.r,color.r,color.r,1.0);
+
+    //——————Texture MIx——————
     
 
-    vec2 worldUV = FragPos.xy * 1.0; // 适当调整这个因子
+   vec2 worldUV = FragPos.xy * 1.0; // Adjust this factor as needed
     vec4 inkColor = texture(texture_ink1, TexCoords);
-   
-    
-    // 使用动态混合因子混合两个纹理
+
+    // Use a dynamic blend factor to mix two textures
     vec4 finalColor;
-    // 计算主纹理的灰度值
+    // Calculate the grayscale value of the main texture
     float texGrey = (color.r + color.g + color.b) * 0.33;
     texGrey = pow(texGrey, 0.3);
     texGrey *= 1.0 - cos(texGrey * 3.14);
 
-    // 计算画笔纹理的灰度值
+    // Calculate the grayscale value of the brush texture
     float brushGrey = (inkColor.r + inkColor.g + inkColor.b) * 0.33;
 
-    // 计算最终的颜色
+    // Calculate the final color
     finalColor = vec4(texGrey * brushGrey, texGrey * brushGrey, texGrey * brushGrey, 1.0);
 
-
-    
-    // 计算法线和位置的变化
-     // 计算法线和位置的变化量
-    vec3 dNdx = dFdx(Normal);
-    vec3 dNdy = dFdy(Normal);
-    vec3 dPdx = dFdx(FragPos)*100;
-    vec3 dPdy = dFdy(FragPos)*100;
-
-    // 计算曲率
-    float curvature = length(dNdx) / length(dPdx) + length(dNdy) / length(dPdy);
-
-    // 线性插值，将基础颜色与白色进行混合
-    vec3 finalColor2 = mix(vec3(1.0, 1.0, 1.0), finalColor.rgb, curvature);
-    //finalColor = vec4(finalColor2,1.0);
+    // ——————Calculate Edge and blend with texture————
 
 
 
@@ -144,9 +132,10 @@ void main() {
     // Apply power for contrast adjustment
     edge = pow(edge, edgePow);
 
-    // 根据深度调整边缘宽度
+    // Adjust edge width based on depth
     float depthAdj = depthFactor(depth);
-    edge *= depthAdj; // 使用深度调整边缘强度
+    edge *= depthAdj; // Adjust edge intensity using depth
+
 
     //----- Blend Black Edges and Color -----
 
@@ -154,7 +143,7 @@ void main() {
     vec3 color2 = mix(vec3(0.0), finalColor.rgb, edge);
 
     // Use the mixValue parameter to control whether to use brush texture to adjust the edge
-    if( mixValue == 1)//使用mivValue参数来控制是否使用笔刷纹理修正边缘
+    if( mixValue == 1)
     {
         if (color2.r < 0.05 && color2.g < 0.05 && color2.b < 0.05) {//focus on black edge
             color2 = finalColor.rgb - vec3(brushcolor.a);
@@ -163,12 +152,23 @@ void main() {
     
     vec3 color3 = mix(color2, color2 * 0.5 + lighting2, lightStrength);
 
+   // ——————Curvature's effect on ink color——————
     
+    // Calculate the changes in normal and position
+    // Calculate the variation in normal and position
+    vec3 dNdx = dFdx(Normal);
+    vec3 dNdy = dFdy(Normal);
+    vec3 dPdx = dFdx(FragPos) * 100;
+    vec3 dPdy = dFdy(FragPos) * 100;
 
-    // 计算表面体积
+    // Calculate curvature
+    float curvature = length(dNdx) / length(dPdx) + length(dNdy) / length(dPdy);
+
+    // Calculate surface volume
     float V_surface = curvature > 0.1 ? 1.0 : 0.0;
 
-    // 计算k值
+    // Calculate k value
+
     float k;
     if (curvature <= 0.05) k = 0.0;
     else if (curvature <= 0.06) k = 0.5;
@@ -176,41 +176,41 @@ void main() {
     //else if (curvature <= 0.2) k = 0.7;
     else k = 0.8;
 
-    // 计算表面质量
-    float rho_ink = 1.0; // 假设墨水密度为1.0
-    float omega = 1.0; // 假设常数omega为1.0
+    // Calculate surface mass
+    float rho_ink = 1.0; // Assume ink density is 1.0
+    float omega = 1.0; // Assume constant omega is 1.0
     float m_surface = rho_ink * V_surface * pow(1.0 + omega / k, -1.0);
 
-    // 使用表面质量m_surface进行渲染
+    // Render using the surface mass m_surface
     vec4 currentInk = texture(texture_diffuse1, gl_FragCoord.xy * texelSize);
     vec4 neighborInk = texture(texture_diffuse1, gl_FragCoord.xy * texelSize + texelSize * vec2(1.0, 0.0)) +
-                       texture(texture_diffuse1, gl_FragCoord.xy * texelSize + texelSize * vec2(-1.0, 0.0)) +
-                       texture(texture_diffuse1, gl_FragCoord.xy * texelSize + texelSize * vec2(0.0, 1.0)) +
-                       texture(texture_diffuse1, gl_FragCoord.xy * texelSize + texelSize * vec2(0.0, -1.0));
-    
+                    texture(texture_diffuse1, gl_FragCoord.xy * texelSize + texelSize * vec2(-1.0, 0.0)) +
+                    texture(texture_diffuse1, gl_FragCoord.xy * texelSize + texelSize * vec2(0.0, 1.0)) +
+                    texture(texture_diffuse1, gl_FragCoord.xy * texelSize + texelSize * vec2(0.0, -1.0));
+
     vec4 averageNeighborInk = neighborInk / 4.0;
     vec4 diffusedInk = mix(currentInk, averageNeighborInk, diffusionRate);
 
-    // 将墨水属性转换为屏幕像素颜色值
-    float C_i = m_surface; // 使用m_surface作为墨水浓度
+    // Convert ink properties to screen pixel color values
+    float C_i = m_surface; // Use m_surface as the ink concentration
+
     float C = 1.0 - pow(1.0 + 0.01 * C_i * C_i, -0.5);
     C = C * 1000 + 0.1;
     
     
     float m = (1- curvature)*(1- curvature);
-    //FragColor = diffusedInk * m_surface; // 将扩散结果与表面质量相结合
-    //FragColor = vec4(curvature,curvature,curvature,1.0);
-    // 如果白色图是全白，可以直接设定颜色为白色
+   
     vec4 whiteColor = vec4(1.0, 1.0, 1.0, 1.0);
 
-    // 使用alpha混合，半透明图的alpha值决定最终颜色
+   // Use alpha blending, where the alpha value of the translucent image determines the final color
     vec3 color4 = mix(whiteColor.rgb, color3.rgb, k);
-    color4 = color3.rgb * 0.5 + color4*0.5;
-   
-    // 设置片段颜色
-    FragColor = vec4(color3.rgb, 1.0); // 假设使用灰度颜色
+    color4 = color3.rgb * C + color4 * 0.5;
+
+    // Set the fragment color
+    FragColor = vec4(color3.rgb, 1.0); // Assume using grayscale color
+
     if(kEnabled == 1)
-        FragColor = vec4(color4.rgb, 1.0); 
+        FragColor = vec4(color4, 1.0); 
     
 }
 
